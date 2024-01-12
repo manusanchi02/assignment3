@@ -1,0 +1,20 @@
+ESP:
+- legge il livello dell'acqua tramite un sonar ad una frequenza che gli viene data dal backend (anche se dalla freccia dello schema non sembra)
+- Manda i dati in mqtt al backend
+
+ARDUINO:
+- muove un servo per aprire la valvola dell'acqua da 0%(0°) a 100%(180°)
+- se preme bottone passa in modalità automatica e lo comunica al backend con seriale
+- mostra su LCD il livello attuale di apertura del gate e la modalità (automatica o manuale)
+
+Backend:
+- controlla livello dell'acqua che gli arriva da Arduino e in base a quello decide lo stato del sistema e quindi la frequenza
+
+Frontend: 
+- mostra grafico con livelli dell'acqua
+- lo stato del sistema
+- il livello di apertura della valvola
+- slider per controllare da remoto (simil-potenziometro)
+
+
+
