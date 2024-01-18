@@ -9,7 +9,6 @@ Sonar::Sonar(int echoPinIn, int trigPinOut)
 {
     this->echoPinIn = echoPinIn;
     this->trigPinOut = trigPinOut;
-    Serial.begin(9600);
     pinMode(echoPinIn, INPUT);
     pinMode(trigPinOut, OUTPUT);
 }
