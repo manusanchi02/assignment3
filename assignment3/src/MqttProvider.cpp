@@ -21,10 +21,10 @@ void MqttProvider::Reconnect()
         Serial.print("Attempting MQTT connection...");
 
         // Create a random client ID
-        String clientId = String("esiot-2122-client-") + String(random(0xffff), HEX);
+        //String clientId = String("ESP32Client") + String(random(0xffff), HEX);
 
         // Attempt to connect
-        if (client.connect(clientId.c_str()))
+        if (client.connect("ESP32Client"))
         {
             Serial.println("connected");
             // Once connected, publish an announcement...

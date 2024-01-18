@@ -17,7 +17,7 @@ public:
      */
     void Reconnect();
 
-    PubSubClient* GetClient() { return &client; }
+    PubSubClient GetClient() { return client; }
 
 protected:
     char* mqtt_server;

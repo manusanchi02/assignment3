@@ -20,11 +20,12 @@ void loop()
     float distance = sonar->getDistance();
     Serial.println(distance);
     delay(1000);
-    PubSubClient client = *mqttProvider->GetClient();
+    PubSubClient client = mqttProvider->GetClient();
     if (!client.connected())
     {
         mqttProvider->Reconnect();
     }
+    Serial.println("loop");
     client.loop();
 
     unsigned long now = millis();
