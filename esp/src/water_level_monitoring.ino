@@ -24,6 +24,7 @@ MqttProvider *mqttProvider;
 
 char msg[MSG_BUFFER_SIZE];
 int frequency;
+
 void setup()
 {
     Serial.begin(115200);
