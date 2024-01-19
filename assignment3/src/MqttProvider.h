@@ -20,7 +20,7 @@ public:
     /**
      * Function to reconnect;
      */
-    void Reconnect();
+    void reconnect();
 
     /**
      * Function to get connection status.
@@ -43,7 +43,7 @@ public:
      * Function to set callback.
      * @param callback: the callback function
     */
-    void setCall(std::function<void (char *, uint8_t *, unsigned int)> callback);
+    void setCallback(std::function<void (char *, uint8_t *, unsigned int)> callback);
 
 private:
     char *mqtt_server;

@@ -6,11 +6,11 @@ MqttProvider::MqttProvider(char* wifi_ssid, char* wifi_password, char* mqtt_serv
     this->mqtt_topic_water = mqtt_topic_water;
     this->mqtt_topic_freq = mqtt_topic_freq;
     wifiConnector = new WiFiConnector(wifi_ssid, wifi_password);
-    wifiConnector->Connect();
+    wifiConnector->connect();
     this->client.setServer(mqtt_server, mqtt_port);
 }
 
-void MqttProvider::Reconnect()
+void MqttProvider::reconnect()
 {
 
     // Loop until we're reconnected
@@ -18,7 +18,7 @@ void MqttProvider::Reconnect()
     while (!this->client.connected())
     {
         if (WiFi.status() != WL_CONNECTED) {
-            wifiConnector->Connect();
+            wifiConnector->connect();
         }
         Serial.print("Attempting MQTT connection...");
         delay(1000);
@@ -40,7 +40,7 @@ void MqttProvider::Reconnect()
 }
 
 bool MqttProvider::getConnStatus() {
-    return this->client.connected();
+    return this->client.connected() && WiFi.status() == WL_CONNECTED;
 }
 
 void MqttProvider::sendMessage(char* message) {
@@ -52,6 +52,6 @@ void MqttProvider::loop() {
     this->client.loop();
 }
 
-void MqttProvider::setCall(std::function<void (char *, uint8_t *, unsigned int)> callback) {
+void MqttProvider::setCallback(std::function<void (char *, uint8_t *, unsigned int)> callback) {
     this->client.setCallback(callback);
 }

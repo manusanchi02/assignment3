@@ -6,14 +6,14 @@ WiFiConnector::WiFiConnector(char *ssid, char *password)
     this->password = password;
 }
 
-void WiFiConnector::Connect()
+void WiFiConnector::connect()
 {
     delay(10);
 
-    Serial.println(String("Connecting to ") + ssid);
+    Serial.println(String("Connecting to ") + this->ssid);
 
     //WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
+    WiFi.begin(this->ssid, this->password);
 
     while (WiFi.status() != WL_CONNECTED)
     {

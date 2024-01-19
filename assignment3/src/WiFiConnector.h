@@ -12,7 +12,7 @@ public:
     /**
      * Function to connect to the network.
      */
-    void Connect();
+    void connect();
 
 protected:
     char* ssid;

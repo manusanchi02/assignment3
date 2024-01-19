@@ -1,25 +1,40 @@
 #include <Arduino.h>
 #include "Sonar.h"
 #include "MqttProvider.h"
+#include "Led.h"
 #define CHANNEL_HEIGHT 10
+#define SSID "iPhone di Emanuele"
+#define PASSWORD "11111111"
+#define SERVER "172.20.10.4"
+#define TOPIC_WATER "water-level"
+#define TOPIC_FREQ "frequency"
+#define MQTT_PORT 1883
+#define ECHO_PIN 13
+#define TRIGGER_PIN 14
+#define REDLEDPIN 4
+#define GREENLEDPIN 5
+
+
+// Electronics components
 Sonar *sonar;
+Led *redLed;
+Led *greenLed;
+// Mqtt
 MqttProvider *mqttProvider;
+
 char msg[MSG_BUFFER_SIZE];
-char *ssid = "iPhone di Emanuele";
-char *password = "11111111";
-char *server = "172.20.10.4"; // ip of the mqtt server (backend)
-char *topic_water = "water-level";
-char *topic_freq = "frequency";
-int mqttport = 1883;
 int frequency;
 void setup()
 {
     Serial.begin(115200);
-    sonar = new Sonar(13, 14);
-    // inizializzazione dei led
+    sonar = new Sonar(ECHO_PIN, TRIGGER_PIN);
+    redLed = new Led(REDLEDPIN);
+    greenLed = new Led(GREENLEDPIN);
+    redLed->switchOn();
+    greenLed->switchOff();
     frequency = 0;
-    mqttProvider = new MqttProvider(ssid, password, server, topic_water, topic_freq, mqttport);
-    mqttProvider->setCall(callback);
+    mqttProvider = new MqttProvider(SSID, PASSWORD, SERVER, TOPIC_WATER, TOPIC_FREQ, MQTT_PORT);
+    mqttProvider->setCallback(callback);
 }
 
 void loop()
@@ -34,8 +49,11 @@ void loop()
 */
 void checkConnection() {
     if(!mqttProvider->getConnStatus()) {
-        //accensione e spegnimento dei led
-        mqttProvider->Reconnect();
+        greenLed->switchOff();
+        redLed->switchOn();
+        mqttProvider->reconnect();
+        redLed->switchOff();
+        greenLed->switchOn();
     }
     mqttProvider->loop();
 }
@@ -74,7 +92,7 @@ int byteArrayToInt(const unsigned char* byteArray, size_t size) {
  * @param length the length of the payload.
 */
 void callback(char* topic, byte* payload, unsigned int length) {
-	if (strcmp(topic, topic_freq) == 0) {
+	if (strcmp(topic, TOPIC_FREQ) == 0) {
 		Serial.print("valore ricevuto: ");
 		frequency = byteArrayToInt(payload, length);
 		Serial.println(frequency);
