@@ -7,9 +7,10 @@ import requests
 # Imposto url server
 url = 'http://url.controller'
 
-# Dati di esempio
+# Dati
 x = [] # Andamento orario
 y = [] # Valori altezza acqua
+
 
 # Attiva la modalità interattiva di matplotlib
 plt.ion()
@@ -48,6 +49,14 @@ while True:
         print(response.text)  # Contenuto della risposta
         y.append(response.text)
         x.append(time.time())
+        if(response.text > 0 && response.text < 0.5):
+            print("Normale")
+        if(response.text > 0.5):
+            print("Allarme!")
+        if(response.text > 0.8):
+            print("Emergenza!")
+        if(response.text > 1):
+            print("Emergenza! Chiamare il 118!")
     else:
         # Gestione degli errori
         print(f"Errore nella richiesta HTTP. Codice di stato: {response.status_code}")
