@@ -1,14 +1,13 @@
 #include "MqttProvider.h"
 
-WiFiClient espClient;
-PubSubClient client(espClient);
-
-MqttProvider::MqttProvider(char *mqtt_server, char *topic)
+MqttProvider::MqttProvider(char* wifi_ssid, char* wifi_password, char* mqtt_server, char* mqtt_topic_water, char *mqtt_topic_freq, int mqtt_port): espClient(), client(espClient) 
 {
     this->mqtt_server = mqtt_server;
-    this->topic = topic;
-    wifiConnector = new WiFiConnector("iPhone di Emanuele", "11111111");
+    this->mqtt_topic_water = mqtt_topic_water;
+    this->mqtt_topic_freq = mqtt_topic_freq;
+    wifiConnector = new WiFiConnector(wifi_ssid, wifi_password);
     wifiConnector->Connect();
+    this->client.setServer(mqtt_server, mqtt_port);
 }
 
 void MqttProvider::Reconnect()
@@ -16,29 +15,43 @@ void MqttProvider::Reconnect()
 
     // Loop until we're reconnected
 
-    while (!client.connected())
+    while (!this->client.connected())
     {
+        if (WiFi.status() != WL_CONNECTED) {
+            wifiConnector->Connect();
+        }
         Serial.print("Attempting MQTT connection...");
-
-        // Create a random client ID
-        //String clientId = String("ESP32Client") + String(random(0xffff), HEX);
-
+        delay(1000);
         // Attempt to connect
-        if (client.connect("ESP32Client"))
+        if (this->client.connect("ESP32Client"))
         {
             Serial.println("connected");
-            // Once connected, publish an announcement...
-            // client.publish("outTopic", "hello world");
-            // ... and resubscribe
-            client.subscribe(topic);
+            this->client.subscribe(this->mqtt_topic_freq);
         }
         else
         {
             Serial.print("failed, rc=");
-            Serial.print(client.state());
+            Serial.print(this->client.state());
             Serial.println(" try again in 5 seconds");
             // Wait 5 seconds before retrying
             delay(5000);
         }
     }
+}
+
+bool MqttProvider::getConnStatus() {
+    return this->client.connected();
+}
+
+void MqttProvider::sendMessage(char* message) {
+    Serial.println("Sending message: " + String(message));
+    this->client.publish(this->mqtt_topic_water, message);
+}
+
+void MqttProvider::loop() {
+    this->client.loop();
+}
+
+void MqttProvider::setCall(std::function<void (char *, uint8_t *, unsigned int)> callback) {
+    this->client.setCallback(callback);
 }
