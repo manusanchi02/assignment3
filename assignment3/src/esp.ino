@@ -52,6 +52,11 @@ void getAndSendWaterLevel() {
 	mqttProvider->sendMessage(message);
 }
 
+/**
+ * Function to convert a byte array to int.
+ * @param byteArray the byte array to convert.
+ * @param size the size of the byte array.
+*/
 int byteArrayToInt(const unsigned char* byteArray, size_t size) {
     int result = 0;
     for (size_t i = 0; i < size; i++) {
@@ -62,7 +67,12 @@ int byteArrayToInt(const unsigned char* byteArray, size_t size) {
     return result;
 }
 
-
+/**
+ * Function to handle the callback.
+ * @param topic the topic of the message.
+ * @param payload the payload of the message.
+ * @param length the length of the payload.
+*/
 void callback(char* topic, byte* payload, unsigned int length) {
 	if (strcmp(topic, topic_freq) == 0) {
 		Serial.print("valore ricevuto: ");
