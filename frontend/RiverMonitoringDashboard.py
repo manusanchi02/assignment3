@@ -1,6 +1,7 @@
 import serial.tools.list_ports
 import PySimpleGUI as sg
-import matplotlib.pyplot as plot
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import time
 import requests
 
@@ -11,13 +12,12 @@ url = 'http://url.controller'
 x = [] # Andamento orario
 y = [] # Valori altezza acqua
 
-
 # Attiva la modalità interattiva di matplotlib
 plt.ion()
 
 # Crea un'istanza del grafico
 fig, ax = plt.subplots()
-line, = ax.plot([], [])  # Creazione di una linea vuota
+line, = ax.plt([], [])  # Creazione di una linea vuota
 
 # Imposta i limiti degli assi
 ax.set_xlim(0, 10)
@@ -28,6 +28,19 @@ ax.set_title('Grafico Altezza Acqua')
 ax.set_xlabel('Tempo')
 ax.set_ylabel('Altezza Acqua')
 
+layout = [
+    [sg.Text('Finestra con Grafico')],
+    [sg.Text('Status:') ,sg.Text("Reading...",key='-ERROR-')]
+    [sg.Canvas(key='-CANVAS-')],
+    [sg.Button('Esci')]
+]
+
+window = sg.Window('Finestra con Grafico', layout, finalize=True)
+canvas_elem = window['-CANVAS-']
+canvas = FigureCanvasTkAgg(fig, canvas_elem.Widget)
+canvas.draw()
+canvas.get_tk_widget().pack(side='top', fill='both', expand=1)
+
 # Funzione per aggiornare il grafico
 def aggiorna_grafico(x, y):
     line.set_xdata(x)
@@ -37,6 +50,11 @@ def aggiorna_grafico(x, y):
 
 # Simulazione dei dati in tempo reale
 while True:
+
+    event, values = window.read()
+    if event == sg.WIN_CLOSED or event == 'Esci':
+        break
+
     # Aggiorna ogni 0.1 secondi
     time.sleep(0.1)
 
@@ -48,12 +66,16 @@ while True:
         # La richiesta è andata a buon fine
         print(response.text)  # Contenuto della risposta
         if(response.text > 0 && response.text < 0.5):
+            window['-ERROR-'].update(response.text)
             print("Normale")
         else if(response.text > 0.5):
+            window['-ERROR-'].update(response.text)
             print("Allarme!")
         else if(response.text > 0.8):
+            window['-ERROR-'].update(response.text)
             print("Emergenza!")
         else if(response.text > 1):
+            window['-ERROR-'].update(response.text)
             print("Emergenza! Chiamare il 118!")
         else:
             y.append(response.text)
