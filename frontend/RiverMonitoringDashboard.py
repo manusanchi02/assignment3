@@ -47,16 +47,18 @@ while True:
     if response.status_code == 200:
         # La richiesta è andata a buon fine
         print(response.text)  # Contenuto della risposta
-        y.append(response.text)
-        x.append(time.time())
         if(response.text > 0 && response.text < 0.5):
             print("Normale")
-        if(response.text > 0.5):
+        else if(response.text > 0.5):
             print("Allarme!")
-        if(response.text > 0.8):
+        else if(response.text > 0.8):
             print("Emergenza!")
-        if(response.text > 1):
+        else if(response.text > 1):
             print("Emergenza! Chiamare il 118!")
+        else:
+            y.append(response.text)
+            x.append(time.time())
+        
     else:
         # Gestione degli errori
         print(f"Errore nella richiesta HTTP. Codice di stato: {response.status_code}")
