@@ -1,9 +1,22 @@
 import time
 import paho.mqtt.client as mqtt
 
+#Enum per stati del sistema
+class State:
+    NORMAL = 0
+    ALARM_TOO_LOW = 1
+    PRE_ALARM_TOO_HIGH = 2
+    ALARM_TOO_HIGH = 3
+    ALARM_TOO_HIGH_CRITIC = 4
+
+#Costanti per valori frequenza
+F1 = 1000
+F2 = 500
+
 # Impostazioni del broker MQTT
 broker_address = "172.20.10.4"
-topic = "frequency"
+topic_send = "frequency"
+topic_receive = "state"
 frequency_message = 100
 
 # Callback che gestisce la connessione al broker
