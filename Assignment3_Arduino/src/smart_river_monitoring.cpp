@@ -52,7 +52,6 @@ void setup()
 	lcd = new LcdMonitor(LCDROWS, LCDCOLS);
     ledGreen = new Led(LEDPIN1);
     ledRed = new Led(LEDPIN2);
-    enableInterrupt(BUTTONPIN, setUnsetManualMode, CHANGE);
 	lcd->setAndPrint("Calibrating sensors", 0, 0);
     gate->setOpen();
     delay(1000);
@@ -63,10 +62,21 @@ void setup()
     controllerState = normal;
 }
 
+void setUnsetManualMode(){
+    if(button->isPressed()){
+        if(controllerState == manual){
+            controllerState = normal;
+        }else{
+            controllerState = manual;
+        }
+    }
+}
+
 /**
  * Function called to make the fsm take a step forward over the controllerState.
 */
 void step(){
+    enableInterrupt(BUTTONPIN, setUnsetManualMode, CHANGE);
     /*
     int incomingByte = Serial.read();
     Serial.println("ciao",DEC);
@@ -112,29 +122,5 @@ void step(){
 void loop()
 {
     step();
-    delay(10000);
-    controllerState = alarm_too_low;
-    step();
-    delay(10000);
-    controllerState = pre_alarm_too_high;
-    step();
-    delay(10000);
-    controllerState = alarm_too_high;
-    step();
-    delay(10000);
-    controllerState = alarm_too_high_critic;
-    step();
-    delay(10000);
-    controllerState = manual;
-    step();
-    delay(10000);
-    controllerState = normal;
-}
-
-void setUnsetManualMode(){
-    if(controllerState == manual){
-        controllerState = normal;
-    }else{
-        controllerState = manual;
-    }
+    delay(500);   
 }
