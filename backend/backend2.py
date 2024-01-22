@@ -1,6 +1,9 @@
 import time
+import threading
 import paho.mqtt.client as mqtt
 from enum import Enum
+import serial.tools.list_ports
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 #Enum per stati del sistema
 class State(Enum):
@@ -15,10 +18,10 @@ F1 = 1000
 F2 = 500
 
 #Costanti per valori soglia
-WL1 = 2
-WL2 = 5
-WL3 = 7
-WL4 = 10
+WL1 = 1
+WL2 = 2
+WL3 = 4
+WL4 = 5
 
 # Impostazioni del broker MQTT
 broker_address = "172.20.10.5"
@@ -31,6 +34,40 @@ frequency_message = 0
 valve_value = 0
 water_level = 0
 state = State.NORMAL
+http_received = ""
+
+# Classe che gestisce le richieste HTTP
+class MyHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/send_data':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.end_headers()
+            content_length = int(self.headers['Content-Length'])
+            http_received = self.rfile.read(content_length).decode('utf-8')
+
+            message = "state:" + str(State) + ";water_level:" + str(water_level) + ";valve_value:" + str(valve_value)
+            self.wfile.write(message.encode())
+            return
+
+# Funzione per avviare il server HTTP
+def run(server_class=HTTPServer, handler_class=MyHandler, port=8080):
+    server_address = ('localhost', port)
+    httpd = server_class(server_address, handler_class)
+    print(f"Server in ascolto sulla porta {port}")
+    httpd.serve_forever()
+
+# Stampa delle porte seriali disponibili
+print("Porte seriali disponibili:")
+ports = serial.tools.list_ports.comports()
+for port, desc, hwid in sorted(ports):
+    print(f"{port}: {desc} [{hwid}]")
+
+# Input utente per la porta seriale
+selected_port = input("Inserisci il nome della porta seriale che vuoi utilizzare: ")
+
+# Connessione alla porta seriale
+ser = serial.Serial(selected_port, 115200, timeout=1)
 
 # Callback che gestisce la connessione al broker
 def on_connect(client, userdata, flags, rc):
@@ -58,9 +95,11 @@ client = mqtt.Client()
 client.connect(broker_address, server_port, 60)
 client.subscribe(topic_receive)
 client.on_message = on_message  # Set the on_message callback
-
-
 client.loop_start()
+
+# Avvio del server HTTP
+http_thread = threading.Thread(target=run)
+http_thread.start()
 
 # Loop principale
 print(water_level)
@@ -95,6 +134,10 @@ try:
             
         # Invia un messaggio con la frequenza desiderata all'esp
         publish_message(client, frequency_message)
+        
+        # Invia messaggio ad Arduino
+        msg = str(valve_value).encode()
+        ser.write(msg)
 
         # Attendi prima di inviare il prossimo messaggio
         time.sleep(frequency_message/1000)
