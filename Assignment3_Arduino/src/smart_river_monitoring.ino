@@ -32,15 +32,12 @@ Led *ledGreen;
 Led *ledRed;
 
 int manualLevel=90;
+int level;
 String data;
 String state;
 
 volatile enum controllerState {
-    normal,
-    alarm_too_low,
-    pre_alarm_too_high,
-    alarm_too_high,
-    alarm_too_high_critic,
+    automatic,
     manual
 } controllerState;
 
@@ -63,13 +60,13 @@ void setup()
 
     enableInterrupt(BUTTONPIN, setUnsetManualMode, CHANGE);
 	Serial.begin(9600);
-    controllerState = normal;
+    controllerState = automatic;
 }
 
 void setUnsetManualMode(){
     if(button->isPressed()){
         if(controllerState == manual){
-            controllerState = normal;
+            controllerState = automatic;
         }else{
             controllerState = manual;
         }
@@ -89,7 +86,7 @@ String readStringFromSerial(){
     return inputString;
 }
 
-String splitString(char separator, int index, String data){
+/*String splitString(char separator, int index, String data){
     int found = 0;
     int strIndex[] = {0, -1};
     int maxIndex = data.length() - 1;
@@ -103,9 +100,9 @@ String splitString(char separator, int index, String data){
     }
 
     return found > index ? data.substring(strIndex[0], strIndex[1]) : "";
-}
+}*/
 
-enum controllerState getNewState(){
+/*enum controllerState getNewLevel(){
     state = splitString(':', 0, data);
     if(state == "normal"){
         return normal;
@@ -121,7 +118,7 @@ enum controllerState getNewState(){
         manualLevel = map(splitString(':', 1, data).toInt(), 0, 100, 0, 180);
         return manual;
     }
-}
+}*/
 
 /**
  * Function called to make the fsm take a step forward over the controllerState.
@@ -130,33 +127,12 @@ void step(){
     //read data from River Monitoring Service (state and *level)
     //*level only if state sent is manual
     data = readStringFromSerial();
-    if(data.length() > 0 && controllerState != manual){
-        controllerState = getNewState();
+    if(data.length() > 0){
+        level = data.toInt();
+        //controllerState = getNewLevel();
     }
     
-    switch(controllerState){
-        case normal:
-            gate->setPos(normalLevel);
-            break;
-        case alarm_too_low:
-            gate->setClose();
-            break;
-        case pre_alarm_too_high:
-            gate->setPos(normalLevel);
-            break;
-        case alarm_too_high:
-            gate->setPos(alarm_to_highLevel);
-            break;
-        case alarm_too_high_critic:
-            gate->setOpen();
-            break;
-        case manual:
-            gate->setPos(manualLevel);   
-            break;
-        default:
-            Serial.println("Error: controllerState not valid");
-            break;
-    }
+    gate->setPos(map(level, 0, 100, 0, 180));
     
     lcd->clean();
     lcd->setAndPrint("Valve opening level:", 0, 0);
