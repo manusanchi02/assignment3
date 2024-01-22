@@ -35,6 +35,8 @@ water_level = 0
 State = State.NORMAL
 http_received = ""
 
+water_level_lock = threading.Lock()
+
 # Classe che gestisce le richieste HTTP
 class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -55,7 +57,7 @@ def run(server_class=HTTPServer, handler_class=MyHandler, port=8080):
     httpd = server_class(server_address, handler_class)
     print(f"Server in ascolto sulla porta {port}")
     httpd.serve_forever()
-''' 
+
 # Stampa delle porte seriali disponibili
 print("Porte seriali disponibili:")
 ports = serial.tools.list_ports.comports()
@@ -67,14 +69,14 @@ selected_port = input("Inserisci il nome della porta seriale che vuoi utilizzare
 
 # Connessione alla porta seriale
 ser = serial.Serial(selected_port, 115200, timeout=1)
-'''
+
 # Callback che gestisce la connessione al broker
-'''def on_connect(client, userdata, flags, rc):
+def on_connect(client, userdata, flags, rc):
     if rc == 0:
         client.subscribe(topic_receive)
         print("Connesso al broker")
     else:
-        print(f"Errore di connessione al broker, codice: {rc}")'''
+        print(f"Errore di connessione al broker, codice: {rc}")
 
 # Funzione per inviare un messaggio al topic "frequency"
 def publish_message(client, message):
@@ -84,64 +86,68 @@ def publish_message(client, message):
 # Callback che gestisce la ricezione di un messaggio
 def on_message(client, userdata, msg):
     global water_level
-    print(f"Ricevuto messaggio sul topic {msg.topic}: {msg.payload.decode()}")
-    water_level = float(msg.payload.decode())
-    #water_level = int(water_level)
-
+    with water_level_lock:
+        print(f"Received message on topic {msg.topic}: {msg.payload.decode()}")
+        water_level = float(msg.payload.decode())
 
 # Creazione del client MQTT
 client = mqtt.Client()
 
-
 # Connessione al broker
 client.connect(broker_address, server_port, 60)
 client.subscribe(topic_receive)
-#client.on_connect = on_connect
+client.on_message = on_message  # Set the on_message callback
+
+# Start the MQTT loop in a separate thread
+mqtt_thread = threading.Thread(target=client.loop_forever)
+mqtt_thread.start()
 
 # Avvio del server HTTP
-#http_thread = threading.Thread(target=run)
-#http_thread.start()
+http_thread = threading.Thread(target=run)
+http_thread.start()
 
 
 # Loop principale
+print(water_level)
 try:
     while True:
-        print(water_level)
-        if(water_level < WL1):
-            print("Livello acqua troppo basso")
-            frequency_message = F1
-            State = 1
-            valve_value = 0
-        if(water_level > WL1 and water_level < WL2):
-            print("Livello acqua normale")
-            frequency_message = F1
-            State = State.NORMAL
-            valve_value = 25
-        if(water_level > WL2 and water_level <= WL3):
-            print("Livello acqua troppo alto pre-allarme")
-            frequency_message = F2
-            State = State.PRE_ALARM_TOO_HIGH
-            valve_value = 25
-        if(water_level > WL3 and water_level <= WL4):
-            print("Livello acqua troppo alto")
-            frequency_message = F2
-            State = State.ALARM_TOO_HIGH
-            valve_value = 50
-        if(water_level > WL4):
-            print("Livello acqua troppo alto critico")
-            frequency_message = F2
-            State = State.ALARM_TOO_HIGH_CRITIC
-            valve_value = 100
+        with water_level_lock:
+            print(water_level)
+            if(water_level < WL1):
+                print("Livello acqua troppo basso")
+                frequency_message = F1
+                State = 1
+                valve_value = 0
+            if(water_level > WL1 and water_level < WL2):
+                print("Livello acqua normale")
+                frequency_message = F1
+                State = State.NORMAL
+                valve_value = 25
+            if(water_level > WL2 and water_level <= WL3):
+                print("Livello acqua troppo alto pre-allarme")
+                frequency_message = F2
+                State = State.PRE_ALARM_TOO_HIGH
+                valve_value = 25
+            if(water_level > WL3 and water_level <= WL4):
+                print("Livello acqua troppo alto")
+                frequency_message = F2
+                State = State.ALARM_TOO_HIGH
+                valve_value = 50
+            if(water_level > WL4):
+                print("Livello acqua troppo alto critico")
+                frequency_message = F2
+                State = State.ALARM_TOO_HIGH_CRITIC
+                valve_value = 100
+                
+            # Invia un messaggio con la frequenza desiderata all'esp
+            publish_message(client, frequency_message)
             
-        # Invia un messaggio con la frequenza desiderata all'esp
-        publish_message(client, frequency_message)
-        
-        # Invia messaggio ad Arduino
-        msg = str(valve_value).encode()
-        #ser.write(msg)
+            # Invia messaggio ad Arduino
+            msg = str(valve_value).encode()
+            #ser.write(msg)
 
-        # Attendi prima di inviare il prossimo messaggio
-        time.sleep(frequency_message/1000)
+            # Attendi prima di inviare il prossimo messaggio
+            time.sleep(frequency_message/1000)
 
 except KeyboardInterrupt:
     print("Interruzione del loop infinito")
