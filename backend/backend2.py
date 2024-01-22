@@ -138,6 +138,7 @@ try:
         # Invia messaggio ad Arduino
         msg = str(valve_value).encode()
         ser.write(msg)
+        print("Serial: " + ser.readline().decode())
 
         # Attendi prima di inviare il prossimo messaggio
         time.sleep(frequency_message/1000)
