@@ -5,7 +5,7 @@
 #define CHANNEL_HEIGHT 10
 #define SSID "iPhone di Emanuele"
 #define PASSWORD "11111111"
-#define SERVER "172.20.10.4"
+#define SERVER "172.20.10.5"
 #define TOPIC_WATER "water-level"
 #define TOPIC_FREQ "frequency"
 #define MQTT_PORT 1883
