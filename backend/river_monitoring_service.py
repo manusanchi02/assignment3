@@ -50,7 +50,7 @@ class MyHandler(BaseHTTPRequestHandler):
 
 # Funzione per avviare il server HTTP
 def run(server_class=HTTPServer, handler_class=MyHandler, port=8080):
-    server_address = ('', port)
+    server_address = ('localhost', port)
     httpd = server_class(server_address, handler_class)
     print(f"Server in ascolto sulla porta {port}")
     httpd.serve_forever()
