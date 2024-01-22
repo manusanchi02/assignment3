@@ -124,7 +124,7 @@ try:
         publish_message(client, frequency_message)
         
         # Invia messaggio ad Arduino
-        msg = str(State).encode() + b':' + str(valve_value).encode()
+        msg = str(valve_value).encode()
         ser.write(msg)
 
         # Attendi prima di inviare il prossimo messaggio
