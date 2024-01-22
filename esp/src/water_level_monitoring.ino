@@ -2,7 +2,7 @@
 #include "Sonar.h"
 #include "MqttProvider.h"
 #include "Led.h"
-#define CHANNEL_HEIGHT 10
+#define CHANNEL_HEIGHT 5
 #define SSID "iPhone di Emanuele"
 #define PASSWORD "11111111"
 #define SERVER "172.20.10.5"
