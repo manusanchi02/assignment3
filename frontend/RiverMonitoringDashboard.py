@@ -88,6 +88,7 @@ while True:
                 if(x.length > 20):
                     x.pop(0)
                     y.pop(0)
+                aggiorna_grafico(x, y)
             else if(dato[0]=="Valve"):
                 window['-VALVE-'].update(dato[1])
                 if(dato[1]=="Open"):
@@ -101,6 +102,3 @@ while True:
     else:
         # Gestione degli errori
         print(f"Errore nella richiesta HTTP. Codice di stato: {response.status_code}")
-    
-    # Aggiorna il grafico
-    aggiorna_grafico(x, y)
