@@ -76,7 +76,7 @@ while True:
     # Verifica dello stato della risposta
     if response.status_code == 200:
         # La richiesta è andata a buon fine
-        elementi_divisi = stringa.split(';')
+        elementi_divisi = response.split(';')
         for elemento in elementi_divisi:
             dato = elemento.split(":")
             if(dato[0]== "State"):
