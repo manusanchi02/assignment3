@@ -44,7 +44,7 @@ class MyHandler(BaseHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             http_received = self.rfile.read(content_length).decode('utf-8')
 
-            message = "State: " + str(State) + "Water level: " + str(water_level) + "Valve value: " + str(valve_value)
+            message = "state:" + str(State) + ";water_level:" + str(water_level) + ";valve_value:" + str(valve_value)
             self.wfile.write(message.encode())
             return
 
