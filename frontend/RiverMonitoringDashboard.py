@@ -20,8 +20,8 @@ fig, ax = plt.subplots()
 line, = ax.plt([], [])  # Creazione di una linea vuota
 
 # Imposta i limiti degli assi
-ax.set_xlim(0, 10)
-ax.set_ylim(0, 1)
+ax.set_xlim(0, 20)
+ax.set_ylim(0, 10)
 
 # Titoli ed etichette
 ax.set_title('Grafico Altezza Acqua')
@@ -32,6 +32,8 @@ layout = [
     [sg.Text('Finestra con Grafico')],
     [sg.Text('Status:') ,sg.Text("Reading...",key='-ERROR-')]
     [sg.Canvas(key='-CANVAS-')],
+    [sg.Text('Valve:'), sg.Text('Closed', key='-VALVE-')],
+    [sg.Button('Apri',key='bottoneA-C')],
     [sg.Button('Esci')]
 ]
 
@@ -54,6 +56,16 @@ while True:
     event, values = window.read()
     if event == sg.WIN_CLOSED or event == 'Esci':
         break
+    
+    if event == 'bottoneA-C':
+        if(window['-VALVE-'].get()=="Closed"):
+            window['-VALVE-'].update("Open")
+            requests.post(url, data="Valve:Open")
+            window['bottoneA-C'].update(text='Chiudi')
+        else:
+            window['-VALVE-'].update("Closed")
+            requests.post(url, data="Valve:Closed")
+            window['bottoneA-C'].update(text='Apri')
 
     # Aggiorna ogni 0.1 secondi
     time.sleep(0.1)
@@ -64,22 +76,27 @@ while True:
     # Verifica dello stato della risposta
     if response.status_code == 200:
         # La richiesta è andata a buon fine
-        print(response.text)  # Contenuto della risposta
-        if(response.text > 0 && response.text < 0.5):
-            window['-ERROR-'].update(response.text)
-            print("Normale")
-        else if(response.text > 0.5):
-            window['-ERROR-'].update(response.text)
-            print("Allarme!")
-        else if(response.text > 0.8):
-            window['-ERROR-'].update(response.text)
-            print("Emergenza!")
-        else if(response.text > 1):
-            window['-ERROR-'].update(response.text)
-            print("Emergenza! Chiamare il 118!")
-        else:
-            y.append(response.text)
-            x.append(time.time())
+        elementi_divisi = stringa.split(';')
+        for elemento in elementi_divisi:
+            dato = elemento.split(":")
+            if(dato[0]== "State"):
+                window['-ERROR-'].update(dato[1])
+                print("Normale")
+            else if(dato[0]=="Water_level"):
+                y.append(dato[1])
+                x.append(time.time())
+                if(x.length > 20):
+                    x.pop(0)
+                    y.pop(0)
+            else if(dato[0]=="Valve"):
+                window['-VALVE-'].update(dato[1])
+                if(dato[1]=="Open"):
+                    window['bottoneA-C'].update(text='Chiudi')
+                else:
+                    window['bottoneA-C'].update(text='Apri')
+                print("Emergenza!")
+            else:
+                print("Errore nella risposta del server")
         
     else:
         # Gestione degli errori
