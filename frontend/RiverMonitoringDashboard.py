@@ -6,7 +6,7 @@ import time
 import requests
 
 # Imposto url server
-url = 'http://localhost:8080'
+url = 'http://localhost/send_data:8080'
 
 # Dati
 x = [] # Andamento orario
@@ -17,7 +17,7 @@ plt.ion()
 
 # Crea un'istanza del grafico
 fig, ax = plt.subplots()
-line, = ax.plt([], [])  # Creazione di una linea vuota
+line, = ax.plot([], [])  # Creazione di una linea vuota
 
 # Imposta i limiti degli assi
 ax.set_xlim(0, 20)
@@ -30,7 +30,7 @@ ax.set_ylabel('Altezza Acqua')
 
 layout = [
     [sg.Text('Finestra con Grafico')],
-    [sg.Text('Status:') ,sg.Text("Reading...",key='-ERROR-')]
+    [sg.Text('Status:') ,sg.Text("Reading...",key='-ERROR-')],
     [sg.Canvas(key='-CANVAS-')],
     [sg.Text('Valve:'), sg.Text('Closed', key='-VALVE-')],
     [sg.Button('Apri',key='bottoneA-C')],
@@ -60,11 +60,11 @@ while True:
     if event == 'bottoneA-C':
         if(window['-VALVE-'].get()=="Closed"):
             window['-VALVE-'].update("Open")
-            requests.post(url, data="Valve:Open")
+            requests.get(url, data="Valve:Open")
             window['bottoneA-C'].update(text='Chiudi')
         else:
             window['-VALVE-'].update("Closed")
-            requests.post(url, data="Valve:Closed")
+            requests.get(url, data="Valve:Closed")
             window['bottoneA-C'].update(text='Apri')
 
     # Aggiorna ogni 0.1 secondi
@@ -79,17 +79,17 @@ while True:
         elementi_divisi = response.split(';')
         for elemento in elementi_divisi:
             dato = elemento.split(":")
-            if(dato[0]== "State"):
+            if(dato[0]== "state"):
                 window['-ERROR-'].update(dato[1])
                 print("Normale")
-            elif(dato[0]=="Water_level"):
+            elif(dato[0]=="water_level"):
                 y.append(dato[1])
                 x.append(time.time())
                 if(x.length > 20):
                     x.pop(0)
                     y.pop(0)
                 aggiorna_grafico(x, y)
-            elif(dato[0]=="Valve"):
+            elif(dato[0]=="valve"):
                 window['-VALVE-'].update(dato[1])
                 if(dato[1]=="Open"):
                     window['bottoneA-C'].update(text='Chiudi')
