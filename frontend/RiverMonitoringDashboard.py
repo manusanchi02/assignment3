@@ -6,7 +6,7 @@ import time
 import requests
 
 # Imposto url server
-url = 'http://url.controller'
+url = 'http://localhost:8080'
 
 # Dati
 x = [] # Andamento orario
