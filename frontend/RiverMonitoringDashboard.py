@@ -82,14 +82,14 @@ while True:
             if(dato[0]== "State"):
                 window['-ERROR-'].update(dato[1])
                 print("Normale")
-            else if(dato[0]=="Water_level"):
+            elif(dato[0]=="Water_level"):
                 y.append(dato[1])
                 x.append(time.time())
                 if(x.length > 20):
                     x.pop(0)
                     y.pop(0)
                 aggiorna_grafico(x, y)
-            else if(dato[0]=="Valve"):
+            elif(dato[0]=="Valve"):
                 window['-VALVE-'].update(dato[1])
                 if(dato[1]=="Open"):
                     window['bottoneA-C'].update(text='Chiudi')
