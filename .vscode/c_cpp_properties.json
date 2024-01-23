@@ -3,7 +3,8 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "C:\\Users\\bacco\\Desktop\\assignment3\\Assignment3_Arduino\\.pio\\libdeps\\uno\\EnableInterrupt"
             ],
             "defines": [
                 "_DEBUG",
