@@ -1,4 +1,5 @@
 import time
+import signal
 import threading
 import paho.mqtt.client as mqtt
 from enum import Enum
@@ -29,6 +30,9 @@ server_port = 1883
 topic_send = "frequency"
 topic_receive = "water-level"
 
+#impostazioni server HTTP
+
+
 # Variabili globali
 frequency_message = 0
 valve_value = 0
@@ -39,6 +43,10 @@ http_received = ""
 # Classe che gestisce le richieste HTTP
 class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.send_header('Access-Control-Allow-Origin', '*')  # o specifica il dominio del tuo client
+        self.end_headers()
         if self.path == '/send_data':
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
@@ -55,6 +63,14 @@ def run(server_class=HTTPServer, handler_class=MyHandler, port=8080):
     server_address = ('localhost', port)
     httpd = server_class(server_address, handler_class)
     print(f"Server in ascolto sulla porta {port}")
+
+    # Aggiungi la gestione del segnale di terminazione
+    def handler(signum, frame):
+        print("Ricevuto segnale di terminazione. Chiudo il server.")
+        httpd.socket.close()
+
+    signal.signal(signal.SIGINT, handler)
+
     httpd.serve_forever()
 
 # Stampa delle porte seriali disponibili
@@ -146,3 +162,4 @@ try:
 except KeyboardInterrupt:
     print("Interruzione del loop infinito")
     client.disconnect()
+    http_thread.join()
