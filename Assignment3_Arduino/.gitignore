@@ -1,0 +1,8 @@
+*.pio
+*.vscode
+*.DS_Store
+*.json
+__pycache__/
+*.checksum
+*.o
+*.a
