@@ -83,7 +83,11 @@ for port, desc, hwid in sorted(ports):
 selected_port = input("Inserisci il nome della porta seriale che vuoi utilizzare: ")
 
 # Connessione alla porta seriale
-ser = serial.Serial(selected_port, 115200, timeout=1)
+#ser = serial.Serial(selected_port, 115200, timeout=1)
+ser = serial.Serial()
+ser.baudrate = 9600
+ser.port = selected_port
+ser.open()
 
 # Callback che gestisce la connessione al broker
 def on_connect(client, userdata, flags, rc):
