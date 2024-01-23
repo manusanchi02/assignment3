@@ -43,20 +43,16 @@ http_received = ""
 # Classe che gestisce le richieste HTTP
 class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
+        global state, water_level, valve_value
+
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
-        self.send_header('Access-Control-Allow-Origin', '*')  # o specifica il dominio del tuo client
+        # self.send_header('Access-Control-Allow-Origin', '*')  # o specifica il dominio del tuo client
         self.end_headers()
-        if self.path == '/send_data':
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
-            content_length = int(self.headers['Content-Length'])
-            http_received = self.rfile.read(content_length).decode('utf-8')
 
-            message = "state:" + str(State) + ";water_level:" + str(water_level) + ";valve_value:" + str(valve_value)
-            self.wfile.write(message.encode())
-            return
+        # Invia una risposta al client
+        message = f"state:{state.value};water_level:{water_level};valve_value:{valve_value}"
+        self.wfile.write(message.encode())
 
 # Funzione per avviare il server HTTP
 def run(server_class=HTTPServer, handler_class=MyHandler, port=8080):
@@ -83,7 +79,7 @@ for port, desc, hwid in sorted(ports):
 selected_port = input("Inserisci il nome della porta seriale che vuoi utilizzare: ")
 
 # Connessione alla porta seriale
-ser = serial.Serial(selected_port, 115200, timeout=1)
+ser = serial.Serial(selected_port, 9600, timeout=1)
 
 # Callback che gestisce la connessione al broker
 def on_connect(client, userdata, flags, rc):
@@ -116,6 +112,9 @@ client.loop_start()
 # Avvio del server HTTP
 http_thread = threading.Thread(target=run)
 http_thread.start()
+
+
+time.sleep(2)
 
 # Loop principale
 print(water_level)
