@@ -31,7 +31,7 @@ while True:
 
     # Richiesta HTTP
     response = requests.get(url)
-    print(response.status_code)
+    print(response.text)
 
     # Verifica dello stato della risposta
     if response.status_code == 200:
