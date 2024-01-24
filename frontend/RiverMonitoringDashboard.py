@@ -6,7 +6,7 @@ import time
 import requests
 
 # Imposto url server
-url = 'http://localhost/send_data:8080'
+url = 'http://localhost:8080'
 
 # Dati
 x = [] # Andamento orario
@@ -50,28 +50,24 @@ def aggiorna_grafico(x, y):
     fig.canvas.draw()
     fig.canvas.flush_events()
 
+'''if __name__ == '__main__':
+    # Richiesta HTTP
+    response = requests.head(url)
+        print("response head text: " + str(response.text))
+        print("response head code:" + str(response.status_code))
+    
+    response = requests.get(url)
+    print("response text: " + str(response.text))
+    print("response code:" + str(response.status_code))
+'''
+
 # Simulazione dei dati in tempo reale
 while True:
 
-    event, values = window.read()
-    if event == sg.WIN_CLOSED or event == 'Esci':
-        break
-    
-    if event == 'bottoneA-C':
-        if(window['-VALVE-'].get()=="Closed"):
-            window['-VALVE-'].update("Open")
-            requests.get(url, data="Valve:Open")
-            window['bottoneA-C'].update(text='Chiudi')
-        else:
-            window['-VALVE-'].update("Closed")
-            requests.get(url, data="Valve:Closed")
-            window['bottoneA-C'].update(text='Apri')
-
-    # Aggiorna ogni 0.1 secondi
-    time.sleep(0.1)
-
     # Richiesta HTTP
     response = requests.get(url)
+    print(response.text)
+    print(response.status_code)
 
     # Verifica dello stato della risposta
     if response.status_code == 200:
@@ -85,7 +81,7 @@ while True:
             elif(dato[0]=="water_level"):
                 y.append(dato[1])
                 x.append(time.time())
-                if(x.length > 20):
+                if(len(x) > 20):
                     x.pop(0)
                     y.pop(0)
                 aggiorna_grafico(x, y)
@@ -102,3 +98,22 @@ while True:
     else:
         # Gestione degli errori
         print(f"Errore nella richiesta HTTP. Codice di stato: {response.status_code}")
+        
+        
+    
+    # Aggiorna ogni 1 secondi
+    time.sleep(1)
+    
+    event, values = window.read()
+    if event == sg.WIN_CLOSED or event == 'Esci':
+        break
+    
+    if event == 'bottoneA-C':
+        if(window['-VALVE-'].get()=="Closed"):
+            window['-VALVE-'].update("Open")
+            requests.get(url, data="Valve:Open")
+            window['bottoneA-C'].update(text='Chiudi')
+        else:
+            window['-VALVE-'].update("Closed")
+            requests.get(url, data="Valve:Closed")
+            window['bottoneA-C'].update(text='Apri')

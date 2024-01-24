@@ -45,21 +45,30 @@ class MyHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         global state, water_level, valve_value
 
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        # self.send_header('Access-Control-Allow-Origin', '*')  # o specifica il dominio del tuo client
-        self.end_headers()
+        try:
+            #send code 200 response
+            self.send_response(200)
 
-        # Invia una risposta al client
-        message = f"state:{state.value};water_level:{water_level};valve_value:{valve_value}"
-        self.wfile.write(message.encode())
+            #send header first
+            self.send_header('Content-type','text-html')
+            self.end_headers()
+
+            # Invia una risposta al client
+            message = "state:" + str(state) + ";water_level:" + str(water_level) + ";valve_value:" + str(valve_value)
+            #message = f"state:{state.value};water_level:{water_level};valve_value:{valve_value}"
+            self.wfile.write(message.encode())
+            return
+        except IOError:
+            self.send_error(404, 'errore')
 
 # Funzione per avviare il server HTTP
-def run(server_class=HTTPServer, handler_class=MyHandler, port=8080):
-    server_address = ('localhost', port)
-    httpd = server_class(server_address, handler_class)
-    print(f"Server in ascolto sulla porta {port}")
-
+def run():
+    server_address = ('localhost', 8080)
+    httpd = HTTPServer(server_address, MyHandler)
+    print(f"Server in ascolto sulla porta 8080")
+    
+    httpd.serve_forever()
+    
     # Aggiungi la gestione del segnale di terminazione
     def handler(signum, frame):
         print("Ricevuto segnale di terminazione. Chiudo il server.")
@@ -67,7 +76,7 @@ def run(server_class=HTTPServer, handler_class=MyHandler, port=8080):
 
     signal.signal(signal.SIGINT, handler)
 
-    httpd.serve_forever()
+
 
 # Stampa delle porte seriali disponibili
 print("Porte seriali disponibili:")
