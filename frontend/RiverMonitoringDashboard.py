@@ -17,7 +17,7 @@ plt.ion()
 
 # Crea un'istanza del grafico
 fig, ax = plt.subplots()
-line, = ax.plot([], [])  # Creazione di una linea vuota
+line = ax.plot([], [])  # Creazione di una linea vuota
 
 # Imposta i limiti degli assi
 ax.set_xlim(0, 20)
@@ -33,7 +33,7 @@ layout = [
     [sg.Text('Status:') ,sg.Text("Reading...",key='-ERROR-')],
     [sg.Canvas(key='-CANVAS-')],
     [sg.Text('Valve:'), sg.Text('Closed', key='-VALVE-')],
-    [sg.Button('Apri',key='bottoneA-C')],
+    #[sg.Button('Apri',key='bottoneA-C')],
     [sg.Button('Esci')]
 ]
 
@@ -45,28 +45,20 @@ canvas.get_tk_widget().pack(side='top', fill='both', expand=1)
 
 # Funzione per aggiornare il grafico
 def aggiorna_grafico(x, y):
-    line.set_xdata(x)
-    line.set_ydata(y)
+    #line.set_data(x, y)  # Aggiorna i dati della linea direttamente
+    for i in x:
+        for j in y:
+            line.insert(int(i),int(j))
+    #line.insert(x,y)
     fig.canvas.draw()
     fig.canvas.flush_events()
-
-'''if __name__ == '__main__':
-    # Richiesta HTTP
-    response = requests.head(url)
-        print("response head text: " + str(response.text))
-        print("response head code:" + str(response.status_code))
-    
-    response = requests.get(url)
-    print("response text: " + str(response.text))
-    print("response code:" + str(response.status_code))
-'''
 
 # Simulazione dei dati in tempo reale
 while True:
 
     # Richiesta HTTP
     response = requests.get(url)
-    print(response.text)
+    #print(response.text)
     print(response.status_code)
 
     # Verifica dello stato della risposta
@@ -75,23 +67,26 @@ while True:
         elementi_divisi = response.text.split(';')
         for elemento in elementi_divisi:
             dato = elemento.split(":")
+            print(dato)
             if(dato[0]== "state"):
                 window['-ERROR-'].update(dato[1])
-                print("Normale")
+                print("Stato: " + dato[1])
             elif(dato[0]=="water_level"):
+                print("Altezza acqua: " + dato[1])
                 y.append(dato[1])
                 x.append(time.time())
                 if(len(x) > 20):
                     x.pop(0)
                     y.pop(0)
                 aggiorna_grafico(x, y)
-            elif(dato[0]=="valve"):
-                window['-VALVE-'].update(dato[1])
+            elif(dato[0]=="valve_value"):
+                print("Valvola: " + dato[1])
+                '''window['-VALVE-'].update(dato[1])
                 if(dato[1]=="Open"):
                     window['bottoneA-C'].update(text='Chiudi')
                 else:
                     window['bottoneA-C'].update(text='Apri')
-                print("Emergenza!")
+                print("Emergenza!")'''
             else:
                 print("Errore nella risposta del server")
         
@@ -102,9 +97,9 @@ while True:
         
     
     # Aggiorna ogni 1 secondi
-    time.sleep(1)
+    time.sleep(0.1)
     
-    event, values = window.read()
+    event, values = window.read(timeout=100)
     if event == sg.WIN_CLOSED or event == 'Esci':
         break
     
