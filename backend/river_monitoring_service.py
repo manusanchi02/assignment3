@@ -8,12 +8,15 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 #Enum per stati del sistema
 class State(Enum):
-    NORMAL = 0
-    ALARM_TOO_LOW = 1
-    PRE_ALARM_TOO_HIGH = 2
-    ALARM_TOO_HIGH = 3
-    ALARM_TOO_HIGH_CRITIC = 4
+    NORMAL = 0, "Normal"
+    ALARM_TOO_LOW = 1, "Alarm too low"
+    PRE_ALARM_TOO_HIGH = 2, "Pre-alarm too high"
+    ALARM_TOO_HIGH = 3, "Alarm too high"
+    ALARM_TOO_HIGH_CRITIC = 4, "Alarm too high critic"
     
+    
+print("stato1: " + str(State.NORMAL.value[1]))
+
 #Costanti per valori frequenza
 F1 = 1000
 F2 = 500
@@ -54,7 +57,9 @@ class MyHandler(BaseHTTPRequestHandler):
             self.end_headers()
 
             # Invia una risposta al client
-            message = "state:" + str(state) + ";water_level:" + str(water_level) + ";valve_value:" + str(valve_value)
+            # get the state of the system with the string value of the enum
+            
+            message = "state:" + str(state.value[1]) + ";water_level:" + str(water_level) + ";valve_value:" + str(valve_value)
             #message = f"state:{state.value};water_level:{water_level};valve_value:{valve_value}"
             self.wfile.write(message.encode())
             return
@@ -137,27 +142,27 @@ try:
         if(water_level < WL1):
             print("Livello acqua troppo basso")
             frequency_message = F1
-            state = State.ALARM_TOO_LOW.value
+            state = State.ALARM_TOO_LOW
             valve_value = 0
         if(water_level > WL1 and water_level < WL2):
             print("Livello acqua normale")
             frequency_message = F1
-            state = State.NORMAL.value
+            state = State.NORMAL
             valve_value = 25
         if(water_level > WL2 and water_level <= WL3):
             print("Livello acqua troppo alto pre-allarme")
             frequency_message = F2
-            state = State.PRE_ALARM_TOO_HIGH.value
+            state = State.PRE_ALARM_TOO_HIGH
             valve_value = 25
         if(water_level > WL3 and water_level <= WL4):
             print("Livello acqua troppo alto")
             frequency_message = F2
-            state = State.ALARM_TOO_HIGH.value
+            state = State.ALARM_TOO_HIGH
             valve_value = 50
         if(water_level > WL4):
             print("Livello acqua troppo alto critico")
             frequency_message = F2
-            state = State.ALARM_TOO_HIGH_CRITIC.value
+            state = State.ALARM_TOO_HIGH_CRITIC
             valve_value = 100
             
         # Invia un messaggio con la frequenza desiderata all'esp
