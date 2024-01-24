@@ -1,55 +1,76 @@
+import time
+import requests
 import PySimpleGUI as sg
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.animation import FuncAnimation
 import numpy as np
+import matplotlib.pyplot as plt
+from io import BytesIO
 
-def update_graph(i, ax, line, x):
-    # Aggiorna il grafico con nuovi dati (esempio)
-    new_y = np.sin(x + i / 10.0)
-    line.set_ydata(new_y)
-    return line,
+# URL del tuo server
+url = "http://localhost:8080"
 
-def draw_figure(canvas, figure):
-    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
-    figure_canvas_agg.draw()
-    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
-    return figure_canvas_agg
+# Dati iniziali del grafico
+x = []
+y = []
 
-def main():
-    sg.theme("LightBlue1")
+# Creazione della finestra PySimpleGUI
+layout = [
+    [sg.Text('Stato: '), sg.Text('', key='-ERROR-')],
+    [sg.Image(key='-IMAGE-')],
+    [sg.Button('Esci')]
+]
 
-    # Dati del grafico (esempio)
-    x = np.linspace(0, 10, 100)
-    y = np.sin(x)
+window = sg.Window('Grafico in tempo reale', layout, finalize=True)
+plot_elem = window['-IMAGE-']
 
-    # Creazione del layout della GUI
-    layout = [
-        [sg.Canvas(key='-CANVAS-', size=(400, 400))],
-        [sg.Button("Esci")]
-    ]
+# Ciclo principale
+while True:
+    event, values = window.read(timeout=1000)  # Timeout di 1 secondo per evitare blocco dell'interfaccia
 
-    # Creazione della finestra
-    window = sg.Window("Grafico con PySimpleGUI", layout, resizable=True, finalize=True)
+    if event == sg.WINDOW_CLOSED or event == 'Esci':
+        break
 
-    # Creazione del grafico iniziale
-    fig, ax = plt.subplots(figsize=(5, 4), dpi=100)
-    line, = ax.plot(x, y)
-    fig_canvas_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
+    # Richiesta HTTP
+    response = requests.get(url)
+    print(response.status_code)
 
-    # Funzione di aggiornamento per l'animazione
-    update_func = lambda i: update_graph(i, ax, line, x)
+    # Verifica dello stato della risposta
+    if response.status_code == 200:
+        elementi_divisi = response.text.split(';')
+        for elemento in elementi_divisi:
+            dato = elemento.split(":")
+            if dato[0] == "state":
+                window['-ERROR-'].update(dato[1])
+                print("Stato: " + dato[1])
+            elif dato[0] == "water_level":
+                print("Altezza acqua: " + dato[1])
+                y.append(float(dato[1]))
+                x.append(time.time())
+                if len(x) > 20:
+                    x.pop(0)
+                    y.pop(0)
 
-    # Creazione dell'animazione che si aggiorna ogni secondo
-    animation = FuncAnimation(fig, update_func, interval=1000, blit=False)
+                # Creazione del grafico
+                plt.plot(x, y, '-o', label='Altezza acqua')
+                plt.legend()
 
-    while True:
-        event, values = window.read()
+                # Salvataggio dell'immagine in memoria
+                buf = BytesIO()
+                plt.savefig(buf, format='png')
+                buf.seek(0)
 
-        if event == sg.WINDOW_CLOSED or event == "Esci":
-            break
+                # Aggiornamento dell'immagine nella finestra
+                plot_elem.update(data=buf.read())
 
-    window.close()
+                # Pulizia della figura di Matplotlib
+                plt.clf()
+                buf.close()
 
-if __name__ == "__main__":
-    main()
+            elif dato[0] == "valve_value":
+                print("Valvola: " + dato[1])
+            else:
+                print("Errore nella risposta del server")
+    else:
+        print(f"Errore nella richiesta HTTP. Codice di stato: {response.status_code}")
+
+# Chiusura della finestra PySimpleGUI
+window.close()
