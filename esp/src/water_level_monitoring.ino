@@ -66,8 +66,11 @@ void getAndSendWaterLevel() {
 	char message[10];
     float distance = sonar->getDistance();
     Serial.println(distance);
-	int waterLevel = CHANNEL_HEIGHT - distance;
-	sprintf(message, "%d", waterLevel);
+	float waterLevel = CHANNEL_HEIGHT - distance;
+    if (waterLevel < 0) {
+        waterLevel = 0;
+    }
+	sprintf(message, "%f", waterLevel);
 	mqttProvider->sendMessage(message);
 }
 
