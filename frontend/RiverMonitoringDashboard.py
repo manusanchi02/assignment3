@@ -11,20 +11,28 @@ url = "http://localhost:8080"
 # Dati iniziali del grafico
 x = []
 y = []
+counter = 0
 
 # Creazione della finestra PySimpleGUI
 layout = [
     [sg.Text('Stato: '), sg.Text('', key='-ERROR-')],
     [sg.Image(key='-IMAGE-')],
+    [sg.Slider(range=(0, 100), default_value=0, orientation='h', size=(20, 15), key='-SLIDER-')],
     [sg.Button('Esci')]
 ]
 
 window = sg.Window('Grafico in tempo reale', layout, finalize=True)
 plot_elem = window['-IMAGE-']
 
+'''
+def on_slider_change(value):
+    label.config(text=f"Valore: {value}")
+
+'''
+
 # Ciclo principale
 while True:
-    event, values = window.read(timeout=1000)  # Timeout di 1 secondo per evitare blocco dell'interfaccia
+    event, values = window.read(timeout=100)  # Timeout di 1 secondo per evitare blocco dell'interfaccia
 
     if event == sg.WINDOW_CLOSED or event == 'Esci':
         break
@@ -44,14 +52,17 @@ while True:
             elif dato[0] == "water_level":
                 print("Altezza acqua: " + dato[1])
                 y.append(float(dato[1]))
-                x.append(time.time())
+                x.append(counter)
+                counter = counter+1
                 if len(x) > 20:
                     x.pop(0)
                     y.pop(0)
 
                 # Creazione del grafico
                 plt.plot(x, y, '-o', label='Altezza acqua')
-                plt.legend()
+                plt.xlabel('last 20 measures')
+                plt.ylabel('Altezza (cm)')
+                plt.ylim(-2,10)
 
                 # Salvataggio dell'immagine in memoria
                 buf = BytesIO()
