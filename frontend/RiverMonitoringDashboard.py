@@ -24,12 +24,6 @@ layout = [
 window = sg.Window('Grafico in tempo reale', layout, finalize=True)
 plot_elem = window['-IMAGE-']
 
-'''
-def on_slider_change(value):
-    label.config(text=f"Valore: {value}")
-
-'''
-
 # Ciclo principale
 while True:
     event, values = window.read(timeout=100)  # Timeout di 1 secondo per evitare blocco dell'interfaccia
